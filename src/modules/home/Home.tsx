@@ -14,6 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {TodoModel} from '../../shared/models/todo_model';
 import {FloatingActionButtonComponent} from '../../shared/components/FloatingActionButtonComponent';
 import {TodoModalComponent} from '../components/TodoModalComponent';
+import {Picker} from '@react-native-picker/picker';
 
 export const Home = () => {
   const todosService: TodosService = new AsyncStorageTodoServiceImpl(
@@ -37,11 +38,9 @@ export const Home = () => {
     });
   }, []);
 
-  const updateTodos = async () => {
-    setIsLoading(true);
+  const reloadTodos = async () => {
     const todos = await todosService.getAllTodos();
     setTodosList(todos);
-    setIsLoading(false);
   };
 
   const resetFields = () => {
@@ -67,10 +66,32 @@ export const Home = () => {
             data={todosList}
             keyExtractor={key => key.uid}
             renderItem={({item}) => (
-              <TouchableOpacity onPress={() => {}}>
+              <TouchableOpacity
+                onLongPress={async () => {
+                  await todosService.deleteTodo(item.uid);
+                  reloadTodos();
+                }}>
                 <View style={styles.listTile}>
                   <Text style={styles.title}>{item.name}</Text>
-                  <Text style={styles.state}>{item.state}</Text>
+                  <View style={styles.state}>
+                    <Picker
+                      selectedValue={item.state}
+                      onValueChange={async value => {
+                        await todosService.updateTodoState({
+                          uid: item.uid,
+                          state: value,
+                        });
+                        reloadTodos();
+                      }}>
+                      {states.map((state, index) => (
+                        <Picker.Item
+                          label={state.toString()}
+                          value={state}
+                          key={index}
+                        />
+                      ))}
+                    </Picker>
+                  </View>
                 </View>
               </TouchableOpacity>
             )}
@@ -88,7 +109,7 @@ export const Home = () => {
             name: todoDescription,
             state: todoState,
           });
-          updateTodos();
+          reloadTodos();
           resetFields();
         }}
         onCancelPressed={resetFields}
@@ -123,11 +144,10 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   title: {
-    width: '70%',
-    fontSize: 20,
+    width: '55%',
+    fontSize: 18,
   },
   state: {
-    width: '30%',
-    fontSize: 16,
+    width: '45%',
   },
 });
