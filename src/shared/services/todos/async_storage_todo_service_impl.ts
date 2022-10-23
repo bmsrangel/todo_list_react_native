@@ -1,8 +1,9 @@
-import {TodoDTO} from '../../dtos/todo_dto';
+import {UpdateTodoDTO} from '../../dtos/update_todo_dto';
 import {TodoModel} from '../../models/todo_model';
 import {TodosService} from './todos_service';
 import {AsyncStorageStatic} from '@react-native-async-storage/async-storage';
-import {v4 as uuidV4} from 'uuid';
+import {CreateTodoDTO} from '../../dtos/create_todo_dto';
+import uuid from 'react-native-uuid';
 
 export class AsyncStorageTodoServiceImpl implements TodosService {
   constructor(storage: AsyncStorageStatic) {
@@ -23,17 +24,20 @@ export class AsyncStorageTodoServiceImpl implements TodosService {
     }
   }
 
-  async insertTodo(newTodo: TodoModel): Promise<TodoModel> {
+  async insertTodo(newTodo: CreateTodoDTO): Promise<TodoModel> {
     const todos = await this.getAllTodos();
-    const newTodoUid = uuidV4();
-    newTodo.uid = newTodoUid;
-    todos.push(newTodo);
+    const newTodoUid = uuid.v4();
+    const newTodoData = {
+      uid: newTodoUid.toString(),
+      ...newTodo,
+    };
+    todos.push(newTodoData);
     const rawData = JSON.stringify(todos);
     await this._storage.setItem(this._todosKey, rawData);
-    return newTodo;
+    return newTodoData;
   }
 
-  async updateTodoState(todoDTO: TodoDTO): Promise<TodoModel> {
+  async updateTodoState(todoDTO: UpdateTodoDTO): Promise<TodoModel> {
     const todos = await this.getAllTodos();
     const todoIndex = todos.findIndex(todo => todo.uid === todoDTO.uid);
     todos[todoIndex].state = todoDTO.state;

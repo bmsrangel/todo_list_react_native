@@ -1,12 +1,6 @@
-import {SafeAreaView, ScrollView, Text} from 'react-native';
 import React from 'react';
+import {Home} from './modules/home/Home';
 
 export const App = () => {
-  return (
-    <SafeAreaView>
-      <ScrollView>
-        <Text>Hello, World!</Text>
-      </ScrollView>
-    </SafeAreaView>
-  );
+  return <Home />;
 };
