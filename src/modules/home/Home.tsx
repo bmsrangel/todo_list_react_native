@@ -1,10 +1,9 @@
 import {
   ActivityIndicator,
-  Button,
   FlatList,
-  Modal,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
@@ -14,8 +13,7 @@ import {AsyncStorageTodoServiceImpl} from '../../shared/services/todos/async_sto
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {TodoModel} from '../../shared/models/todo_model';
 import {FloatingActionButtonComponent} from '../../shared/components/FloatingActionButtonComponent';
-import {CustomInputFieldComponent} from '../components/CustomInputFieldComponent';
-import {CustomDropdownComponent} from '../components/CustomDropdownComponent';
+import {TodoModalComponent} from '../components/TodoModalComponent';
 
 export const Home = () => {
   const todosService: TodosService = new AsyncStorageTodoServiceImpl(
@@ -69,53 +67,32 @@ export const Home = () => {
             data={todosList}
             keyExtractor={key => key.uid}
             renderItem={({item}) => (
-              <View style={styles.listTile}>
-                <Text style={styles.title}>{item.name}</Text>
-                <Text style={styles.state}>{item.state}</Text>
-              </View>
+              <TouchableOpacity onPress={() => {}}>
+                <View style={styles.listTile}>
+                  <Text style={styles.title}>{item.name}</Text>
+                  <Text style={styles.state}>{item.state}</Text>
+                </View>
+              </TouchableOpacity>
             )}
           />
         )}
       </View>
-      <Modal animationType="slide" transparent={true} visible={isModalVisible}>
-        <View style={styles.modal}>
-          <View style={styles.modalContent}>
-            <CustomInputFieldComponent
-              label="Descrição:"
-              onChangeText={setTodoDescription}
-            />
-            <CustomDropdownComponent
-              label="Estado:"
-              inputValues={states}
-              selectedValue={todoState}
-              onValueChange={setTodoState}
-            />
-            <View style={styles.buttonsSection}>
-              <View style={styles.actionButton}>
-                <Button
-                  title="Adicionar"
-                  color="#053261"
-                  onPress={async () => {
-                    await todosService.insertTodo({
-                      name: todoDescription,
-                      state: todoState,
-                    });
-                    updateTodos();
-                    resetFields();
-                  }}
-                />
-              </View>
-              <View style={styles.actionButton}>
-                <Button
-                  title="Cancelar"
-                  color="#053261"
-                  onPress={resetFields}
-                />
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
+      <TodoModalComponent
+        isVisible={isModalVisible}
+        onChangeDescription={setTodoDescription}
+        dropdownInputValues={states}
+        dropdownSelectedValue={todoState}
+        onDropdownChanged={setTodoState}
+        onAddPressed={async () => {
+          await todosService.insertTodo({
+            name: todoDescription,
+            state: todoState,
+          });
+          updateTodos();
+          resetFields();
+        }}
+        onCancelPressed={resetFields}
+      />
       <FloatingActionButtonComponent
         onPressed={() => setIsModalVisible(true)}
       />
@@ -136,34 +113,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 16,
   },
-  modal: {
-    flex: 1,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 16,
-    marginRight: 16,
-  },
-  modalContent: {
-    width: '100%',
-    height: '50%',
-    borderWidth: 1,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
-    borderColor: '#cdcdcd',
-    position: 'absolute',
-    bottom: 0,
-    padding: 8,
-    backgroundColor: '#fbfbfb',
-  },
-  buttonsSection: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  actionButton: {
-    width: '40%',
-  },
+
   listTile: {
     display: 'flex',
     flex: 1,
@@ -174,10 +124,10 @@ const styles = StyleSheet.create({
   },
   title: {
     width: '70%',
-    fontSize: 24,
+    fontSize: 20,
   },
   state: {
     width: '30%',
-    fontSize: 20,
+    fontSize: 16,
   },
 });
