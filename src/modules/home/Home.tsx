@@ -1,6 +1,7 @@
 import {
   ActivityIndicator,
   FlatList,
+  ListRenderItem,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -55,20 +56,60 @@ export const Home = () => {
     setIsModalVisible(false);
   };
 
+  const onSearchChanged = (value: string) => {
+    setSearch(value);
+    debounced(value);
+  };
+
+  const onResetPressed = () => {
+    reloadTodos();
+    setSearch('');
+  };
+
+  const onAddPressed = async () => {
+    await todosService.insertTodo({
+      name: todoDescription,
+      state: todoState,
+    });
+    reloadTodos();
+    resetFields();
+  };
+
+  const flatListRenderItem: ListRenderItem<TodoModel> = ({item}) => (
+    <TouchableOpacity
+      onLongPress={async () => {
+        await todosService.deleteTodo(item.uid);
+        reloadTodos();
+      }}>
+      <View style={styles.listTile}>
+        <Text style={styles.title}>{item.name}</Text>
+        <View style={styles.state}>
+          <Picker
+            selectedValue={item.state}
+            onValueChange={async value => {
+              await todosService.updateTodoState({
+                uid: item.uid,
+                state: value,
+              });
+              reloadTodos();
+            }}>
+            {states.map((state, index) => (
+              <Picker.Item label={state.toString()} value={state} key={index} />
+            ))}
+          </Picker>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
   return isLoading ? (
     <ActivityIndicator size="large" />
   ) : (
     <View style={styles.container}>
       <SearchBarComponent
         value={search}
-        onChanged={value => {
-          setSearch(value);
-          debounced(value);
-        }}
-        onResetPressed={() => {
-          reloadTodos();
-          setSearch('');
-        }}
+        onChanged={onSearchChanged}
+        onResetPressed={onResetPressed}
       />
       <View style={styles.content}>
         {todosList?.length === 0 ? (
@@ -77,36 +118,7 @@ export const Home = () => {
           <FlatList
             data={todosList}
             keyExtractor={key => key.uid}
-            renderItem={({item}) => (
-              <TouchableOpacity
-                onLongPress={async () => {
-                  await todosService.deleteTodo(item.uid);
-                  reloadTodos();
-                }}>
-                <View style={styles.listTile}>
-                  <Text style={styles.title}>{item.name}</Text>
-                  <View style={styles.state}>
-                    <Picker
-                      selectedValue={item.state}
-                      onValueChange={async value => {
-                        await todosService.updateTodoState({
-                          uid: item.uid,
-                          state: value,
-                        });
-                        reloadTodos();
-                      }}>
-                      {states.map((state, index) => (
-                        <Picker.Item
-                          label={state.toString()}
-                          value={state}
-                          key={index}
-                        />
-                      ))}
-                    </Picker>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
+            renderItem={flatListRenderItem}
           />
         )}
       </View>
@@ -116,14 +128,7 @@ export const Home = () => {
         dropdownInputValues={states}
         dropdownSelectedValue={todoState}
         onDropdownChanged={setTodoState}
-        onAddPressed={async () => {
-          await todosService.insertTodo({
-            name: todoDescription,
-            state: todoState,
-          });
-          reloadTodos();
-          resetFields();
-        }}
+        onAddPressed={onAddPressed}
         onCancelPressed={resetFields}
       />
       <FloatingActionButtonComponent
