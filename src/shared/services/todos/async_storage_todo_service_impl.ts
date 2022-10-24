@@ -48,7 +48,9 @@ export class AsyncStorageTodoServiceImpl implements TodosService {
 
   async findTodoByName(name: string): Promise<TodoModel[]> {
     const todos = await this.getAllTodos();
-    const filteredTodos = todos.filter(todo => todo.name.includes(name));
+    const filteredTodos = todos.filter(todo =>
+      todo.name.toLowerCase().includes(name.toLowerCase()),
+    );
     return filteredTodos;
   }
 

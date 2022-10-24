@@ -14,7 +14,7 @@ export const CustomDropdownComponent = <T extends Object>(
 ) => {
   return (
     <View style={styles.pickerSection}>
-      <Text>{props.label}:</Text>
+      <Text>{props.label}</Text>
       <Picker<T>
         style={styles.picker}
         selectedValue={props.selectedValue}

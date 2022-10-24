@@ -5,7 +5,7 @@ import Icon from 'react-native-vector-icons/MaterialIcons';
 type SearchBarComponentProps = {
   value?: string;
   onChanged?: (e: string) => void;
-  onSearchPressed?: (e: GestureResponderEvent) => void;
+  onResetPressed?: (e: GestureResponderEvent) => void;
 };
 
 export const SearchBarComponent = (props: SearchBarComponentProps) => {
@@ -19,9 +19,9 @@ export const SearchBarComponent = (props: SearchBarComponentProps) => {
       />
       <View style={styles.searchButton}>
         <Icon
-          name="search"
-          onPress={props.onSearchPressed}
-          size={28}
+          name="refresh"
+          onPress={props.onResetPressed}
+          size={22}
           color="white"
         />
       </View>

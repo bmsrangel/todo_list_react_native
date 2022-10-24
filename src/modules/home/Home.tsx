@@ -15,6 +15,7 @@ import {TodoModel} from '../../shared/models/todo_model';
 import {FloatingActionButtonComponent} from '../../shared/components/FloatingActionButtonComponent';
 import {TodoModalComponent} from '../components/TodoModalComponent';
 import {Picker} from '@react-native-picker/picker';
+import {useDebouncedCallback} from 'use-debounce';
 
 export const Home = () => {
   const todosService: TodosService = new AsyncStorageTodoServiceImpl(
@@ -26,7 +27,7 @@ export const Home = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isModalVisible, setIsModalVisible] = useState<boolean>(false);
 
-  const states = ['Todo', 'Doing', 'Completed'];
+  const states = ['Pendente', 'Em andamento', 'Finalizado'];
   const [todoDescription, setTodoDescription] = useState<string>('');
   const [todoState, setTodoState] = useState<string>(states[0]);
 
@@ -37,6 +38,11 @@ export const Home = () => {
       setIsLoading(false);
     });
   }, []);
+
+  const debounced = useDebouncedCallback(async term => {
+    const filteredResults = await todosService.findTodoByName(term);
+    setTodosList(filteredResults);
+  }, 1000);
 
   const reloadTodos = async () => {
     const todos = await todosService.getAllTodos();
@@ -55,8 +61,14 @@ export const Home = () => {
     <View style={styles.container}>
       <SearchBarComponent
         value={search}
-        onChanged={setSearch}
-        onSearchPressed={() => console.log('search pressed')}
+        onChanged={value => {
+          setSearch(value);
+          debounced(value);
+        }}
+        onResetPressed={() => {
+          reloadTodos();
+          setSearch('');
+        }}
       />
       <View style={styles.content}>
         {todosList?.length === 0 ? (
